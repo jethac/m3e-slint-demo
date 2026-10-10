@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A working Material 3 Expressive port for Slint. Explore the spike, the real UI, the rendering work, and what remains before the library is complete.">
+  <meta name="theme-color" content="#00695c">
+  <title>Material 3 Expressive for Slint — a working spike</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#story">Skip to the story</a>
+  <header class="hero">
+    <div class="wrap">
+      <nav aria-label="Main navigation">
+        <a class="brand" href="#">M3E × Slint</a>
+        <a href="#screens">See the app</a>
+        <a href="#engineering">Under the surface</a>
+      </nav>
+      <h1>Material 3 Expressive,<br>running in Slint.</h1>
+      <p class="lede">A working spike in bringing expressive shapes, spring motion, and Material components to a native UI toolkit.</p>
+      <div class="hero-links">
+        <a class="jump" href="#screens">Explore Fieldnotes</a>
+        <a href="https://github.com/jethac/slint/tree/preview/material-fieldnotes/ui-libraries/material">Browse the implementation</a>
+      </div>
+      <p class="project-note">An independent experiment in a Slint fork. The spike works; the library is still being completed.</p>
+    </div>
+  </header>
+
+  <main>
+    <article class="story" id="story">
+      <h2>The question</h2>
+      <p>Can Material 3 Expressive feel at home in Slint?</p>
+      <p>That means more than matching a button’s color. Shapes change as you press them. Springs carry movement between states. Type, elevation, focus, and touch targets all have to agree.</p>
+      <p>This started as a port of Material components and grew into an experiment across the library, the Slint runtime, and its renderers.</p>
+
+      <h2>A real app makes the differences visible</h2>
+      <p>Fieldnotes is a small day planner built from the port: task editing, completion filters, responsive navigation, light and dark colors, and reduced motion.</p>
+      <p>Putting components together exposed problems isolated samples missed: app bars stretching in layouts, clipped tooltips, dialog dismissal state, and a slow desktop preview.</p>
+      <blockquote>The useful test is a complete interaction: open the editor, type a task, save it, filter it, and edit it again.</blockquote>
+      <p>Those interactions now have regression checks. Fieldnotes keeps its tasks in memory while the window is open.</p>
+    </article>
+
+    <section class="showcase" id="screens" aria-labelledby="screens-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div><h2 id="screens-title">Meet Fieldnotes</h2><p>Actual renders from the Slint application.</p></div>
+          <a id="full-image" href="assets/desktop-light.png" target="_blank" rel="noopener">Open the full image</a>
+        </div>
+        <div class="view-controls" role="group" aria-label="Choose a desktop screenshot">
+          <button type="button" data-screen="day" aria-pressed="true">My day</button>
+          <button type="button" data-screen="appearance" aria-pressed="false">Appearance</button>
+        </div>
+        <figure class="desktop-frame">
+          <img id="desktop-screen" src="assets/desktop-light.png" width="1000" height="760" alt="Fieldnotes in light colors, showing a navigation rail, completion filters, and a list of editable tasks." fetchpriority="high">
+          <figcaption id="desktop-caption">A navigation rail on a wide window, with task filters and an editor one click away.</figcaption>
+        </figure>
+        <div class="phone-grid">
+          <figure>
+            <img src="assets/mobile-light.png" width="390" height="844" alt="Fieldnotes in a narrow light window, with wrapped task notes and bottom navigation." loading="lazy">
+            <figcaption><strong>A smaller window.</strong> Bottom navigation replaces the rail; task notes wrap.</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/mobile-dark.png" width="390" height="844" alt="The same narrow Fieldnotes layout in dark colors." loading="lazy">
+            <figcaption><strong>A different palette.</strong> The same components follow the dark theme.</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/editor-mobile.png" width="390" height="844" alt="Fieldnotes task editor showing the required task-name field and its validation message." loading="lazy">
+            <figcaption><strong>A complete workflow.</strong> Task editing includes validation, keyboard save, and dismissal.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="motion-section wrap" id="motion" aria-labelledby="motion-title">
+      <div class="section-head">
+        <div><h2 id="motion-title">Motion is part of the interface</h2><p>Compare the task editor with reduced motion off and on.</p></div>
+        <button class="play-button" id="play-comparison" type="button">Play both</button>
+      </div>
+      <div class="motion-grid">
+        <figure>
+          <video id="expressive-motion" controls playsinline preload="none" poster="assets/desktop-light.png" aria-label="Fieldnotes task editor with reduced motion off">
+            <source src="assets/dialog-expressive.mp4" type="video/mp4">
+            <a href="assets/dialog-expressive.mp4">Download the animation</a>
+          </video>
+          <figcaption><strong>Reduced motion off.</strong> The scrim and editor fade into view.</figcaption>
+        </figure>
+        <figure>
+          <video id="reduced-motion" controls playsinline preload="none" poster="assets/desktop-light.png" aria-label="Fieldnotes task editor with reduced motion on">
+            <source src="assets/dialog-reduced.mp4" type="video/mp4">
+            <a href="assets/dialog-reduced.mp4">Download the animation</a>
+          </video>
+          <figcaption><strong>Reduced motion on.</strong> The editor appears without the opacity transition.</figcaption>
+        </figure>
+      </div>
+      <p class="capture-note">These clips contain actual Slint-rendered frames sampled at a controlled 60 Hz clock. They demonstrate animation behavior, not measured GPU performance.</p>
+      <p id="playback-status" class="capture-note" role="status" aria-live="polite"></p>
+    </section>
+
+    <article class="story" id="engineering">
+      <h2>What it takes to make M3E work</h2>
+      <p>The declarative components are one layer. The port also needs the machinery beneath them to reproduce the reference behavior.</p>
+      <dl class="engineering-list">
+        <div><dt>Tokens tied to a reference</dt><dd>Generators translate the pinned AndroidX Material3 definitions into Slint colors, typography, shapes, and component values. Drift checks keep generated output reproducible.</dd></div>
+        <div><dt>Springs and changing shapes</dt><dd>The fork has spring easing and expressive shape support. Components use the active motion scheme for press, selection, expansion, and settling behavior.</dd></div>
+        <div><dt>Type and elevation</dt><dd>Variable fonts, baseline metrics, and Material elevation need to stay consistent with the component geometry. The parity harness checks geometry and motion as well as pixels.</dd></div>
+        <div><dt>Composition and overlays</dt><dd>A correct component still has to survive a real layout. This spike fixes app-bar sizing, pinned-bar tooltip clipping, and dialog dismissal callbacks. Other clipped containers still need an overlay solution.</dd></div>
+        <div><dt>The right desktop renderer</dt><dd>The original interactive preview used a debug build and CPU software rendering. Switching to an optimized Skia build over Direct3D 12 made it visibly smoother on the test machine.</dd></div>
+        <div><dt>Evidence across renderers</dt><dd>The same scenes are compared with a pinned Compose reference on software, Skia, and FemtoVG. Known differences remain explicit rather than disappearing behind a passing test count.</dd></div>
+      </dl>
+      <p><a href="https://github.com/jethac/slint/blob/preview/material-fieldnotes/ui-libraries/material/PREVIEW.md">Read the preview report and verification details</a>.</p>
+
+      <h2>Where the spike ends</h2>
+      <p>The working app establishes that the approach is viable. Full library completion is still a separate body of work.</p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Component inventory status">
+        <table>
+          <caption>Recorded inventory at the reviewed spike, October 10, 2026</caption>
+          <thead><tr><th scope="col">Status</th><th scope="col">Entries</th><th scope="col">Meaning</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Done</th><td>61</td><td>Recorded as matching the pinned specification; still subject to the completion audit.</td></tr>
+            <tr><th scope="row">Partial</th><td>72</td><td>Components exist, with API, interaction, motion, or rendering work remaining.</td></tr>
+            <tr><th scope="row">Missing</th><td>17</td><td>Includes carousel, wavy progress, drawer-sheet APIs, toggle names, and text-style helpers.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="capture-note">The inventory includes variants and Compose functions, not just distinct widgets.</p>
+      <p>The baseline covers 264 scenes across three Slint renderers. It includes deliberate negative cases and expected failures, so a green harness is not a claim of complete visual parity.</p>
+      <p>Remaining work includes completing the inventory, resolving implementation failures, validating native accessibility, and measuring representative interactions in release GPU builds.</p>
+      <p><a href="https://github.com/jethac/slint/blob/preview/material-fieldnotes/ui-libraries/material/PARITY.md">Explore the full parity inventory</a>.</p>
+
+      <h2>Follow the work</h2>
+      <p>The reviewed spike lives on <a href="https://github.com/jethac/slint/tree/preview/material-fieldnotes">the preview branch in jethac/slint</a>.</p>
+      <pre><code>cargo run --release \
+  --manifest-path ui-libraries/material/Cargo.toml \
+  -p material-fieldnotes</code></pre>
+      <p>On Windows, Fieldnotes selects Skia and requires Direct3D 12. Software rendering remains useful for deterministic headless checks.</p>
+      <h3>Upstream work</h3>
+      <p id="upstream-empty">No upstream pull requests have been filed for this spike. Links and their status will appear here when that work starts.</p>
+      <ul id="upstream-links" hidden aria-label="Upstream pull requests"></ul>
+      <p class="capture-note">Current work is committed to the fork. Upstream submission is a future step.</p>
+    </article>
+  </main>
+
+  <footer>
+    <p>Material 3 Expressive for Slint · an independent spike</p>
+    <p><a href="https://github.com/jethac/m3e-slint-demo">Landing-page source</a> · <a href="https://github.com/jethac/slint/tree/preview/material-fieldnotes">Slint fork</a></p>
+  </footer>
+</body>
+</html>

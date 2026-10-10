@@ -1,0 +1,5 @@
+.wrangler/
+.preview/
+node_modules/
+dist/
+*.log
